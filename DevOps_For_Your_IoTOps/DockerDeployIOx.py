@@ -1,5 +1,8 @@
 import requests
 import json
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 
 def get_token(ip, username, password):
@@ -8,11 +11,12 @@ def get_token(ip, username, password):
     print(url)
 
     r = requests.post(url, auth=(username, password), verify=False)
+    print(r.request.headers)
     token = ''
     if r.status_code == 202:
         print(r.json())
         token = r.json()['token']
-        # print(token)
+        #print(token)
     else:
         print("ERROR")
         print("Status code is " + str(r.status_code))
@@ -108,6 +112,7 @@ def create_myapp(ip, token, appname):
 
     app_details = get_app_details(ip, token, appname)
 
+    # 60c580493a4edcd3692070a7550061e1b9676d0cd4d42a9bfa87d06d887b1ac9
     data = {"name": appname,
             "sourceAppName": "0d0bb532-dbaf-4b65-81c9-8c6ab9a00b60:8cf97f1f607dea7aa5fa1038920e362d0378ed86eaca4ac5582f8bf53fbb12a2",
             "version": "8cf97f1f607dea7aa5fa1038920e362d0378ed86eaca4ac5582f8bf53fbb12a2",

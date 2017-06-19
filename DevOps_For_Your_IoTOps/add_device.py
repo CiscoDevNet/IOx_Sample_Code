@@ -22,7 +22,7 @@ def get_token(ip,username,password):
 
 def add_device(ip,token):
     print("add devices")
-    ip_range = ["10.10.20.52"]
+    ip_range = ["10.10.20.52", "10.10.20.51"]
     print(ip_range)
     for device_ip in ip_range:
         #print("inside for")
@@ -40,7 +40,6 @@ def add_device(ip,token):
 
 def delete_token(ip, token):
     url = "https://%s/api/v1/appmgr/tokenservice/%s" % (ip, token)
-	
     headers = {'x-token-id':token,'content-type': 'application/json'}
     
     r = requests.delete(url,headers=headers,verify=False)

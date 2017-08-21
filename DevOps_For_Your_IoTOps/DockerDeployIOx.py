@@ -24,28 +24,13 @@ def get_token(ip, username, password):
     return token
 
 
-def delete_token(ip, token):
-    url = "https://%s/api/v1/appmgr/tokenservice/%s" % (ip, token)
-
-    headers = {'x-token-id': token, 'content-type': 'application/json'}
-
-    r = requests.delete(url, headers=headers, verify=False)
-
-    if r.status_code == 200:
-        print(r.json())
-    else:
-        print("ERROR")
-        print("Status code is " + str(r.status_code))
-        print(r.text)
-
-
-def add_app(ip, token, appname):
+def add_app(ip, token, appname, imageTag):
     url = "https://%s/api/v1/appmgr/localapps/upload" % ip
 
     headers = {'x-token-id': token}
     parameters = {"type": "docker",
                   "dockerImageName": appname,
-                  "dockerImageTag": "",
+                  "dockerImageTag": imageTag,
                   "dockerRegistry": ""}
 
     r = requests.post(url, headers=headers, params=parameters, verify=False)
@@ -86,9 +71,12 @@ def get_app_details(ip, token, appname):
 
 
 def get_myapp_details(ip, token, myapp_name):
-    url = "https://%s/api/v1/appmgr/myapps?searchByName=%s" % (ip, myapp_name)
+    url = "https://%s/api/v1/appmgr/myapps" % ip
+    payload = {"searchByName": myapp_name}
     headers = {'x-token-id': token, 'content-type': 'application/json'}
-    r = requests.get(url, headers=headers, verify=False)
+    r = requests.get(url, headers=headers, params=payload, verify=False)
+    print(r.url)
+    print(r.text)
     print(r.status_code)
     return json.loads((json.dumps(r.json())))
 
@@ -112,10 +100,9 @@ def create_myapp(ip, token, appname):
 
     app_details = get_app_details(ip, token, appname)
 
-    # 60c580493a4edcd3692070a7550061e1b9676d0cd4d42a9bfa87d06d887b1ac9
     data = {"name": appname,
-            "sourceAppName": "0d0bb532-dbaf-4b65-81c9-8c6ab9a00b60:8cf97f1f607dea7aa5fa1038920e362d0378ed86eaca4ac5582f8bf53fbb12a2",
-            "version": "8cf97f1f607dea7aa5fa1038920e362d0378ed86eaca4ac5582f8bf53fbb12a2",
+            "sourceAppName": appname,
+            "version": "v1",
             "appSourceType": "LOCAL_APPSTORE"}
     data["name"] = appname
     data["sourceAppName"] = app_details["localAppId"] + ":" + app_details["version"]
@@ -233,6 +220,11 @@ username = "admin"
 password = "admin_123"
 appname = "ciscodevnet/go-escaperoom"
 deviceip = "10.10.20.52"
+imageTag = "master"
+if imageTag == "":
+    fullappname = appname
+else:
+    fullappname = appname + ":" + imageTag
 
 # Login to Fog Director
 print("Login to Fog Director")
@@ -240,21 +232,14 @@ token_id = get_token(app_mgr_ip, username, password)
 print(token_id)
 
 print("Adding app to Fog Director")
-add_app(app_mgr_ip, token_id, appname)
+add_app(app_mgr_ip, token_id, appname, imageTag)
 
 print("Publishing the unpublished apps in FD")
 publish_apps(app_mgr_ip, token_id)
 
-install_app(app_mgr_ip, token_id, appname, deviceip)
-#stop_app(app_mgr_ip, token_id, appname)
-start_app(app_mgr_ip, token_id, appname)
+install_app(app_mgr_ip, token_id, fullappname, deviceip)
 
-print("AND YOUR DONE, http://10.10.20.52:3000/ecaspebutton.html to be ESCAPE")
-# uninstall_app(app_mgr_ip, token_id, appname, deviceip)
+start_app(app_mgr_ip, token_id, fullappname)
 
-# print("Logging out of Fog Director")
-# delete_token(app_mgr_ip, token_id)
-
-#print("Logging out of Fog Director")
-#delete_token(app_mgr_ip, token_id)
+print("AND YOUR DONE")
 

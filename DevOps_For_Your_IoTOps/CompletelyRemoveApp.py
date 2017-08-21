@@ -116,7 +116,7 @@ def unpublish_apps(ip, token, app_name):
 
     for index in range(len(apps['data'])):
         appid = apps['data'][index]['localAppId']
-        app_name = apps['data'][index]['name']
+        appname = apps['data'][index]['name']
         appversion = apps['data'][index]['version']
         publish_state = apps['data'][index]['published']
         if publish_state == True and app_name == appname:
@@ -140,7 +140,7 @@ def delete_local_app(ip, token, app_name):
     for index in range(len(apps['data'])):
         appid = apps['data'][index]['localAppId']
         print(appid)
-        app_name = apps['data'][index]['name']
+        appname = apps['data'][index]['name']
         appversion = apps['data'][index]['version']
         if app_name == appname:
             print("Deleting App %s from FogDirector!" % (app_name))
@@ -191,7 +191,6 @@ def summary_state(ip, token, appname, removeable_statuses):
 
         print("removing app")
         r = requests.delete(url, headers=headers, verify=False)
-        print("response")
         print(r.text)
         if r.text != removeable_statuses:
             status = False
@@ -204,8 +203,14 @@ username = "admin"
 password = "admin_123"
 appname = "ciscodevnet/go-escaperoom"
 deviceip = "10.10.20.52"
+imageTag = "master"
+if imageTag == "":
+    fullappname = appname
+else:
+    fullappname = appname + ":" + imageTag
 
-removeable_statuses = """{"code":1303,"description":"App ciscodevnet/go-escaperoom is in use: Used By 1 device(s)"}"""
+
+removeable_statuses = """{"code":1303,"description":"App %s is in use: Used By 1 device(s)"}""" % fullappname
 
 # Login to Fog Director
 print("Login to Fog Director")
@@ -218,18 +223,18 @@ print("Adding app to Fog Director")
 # stop_app(app_mgr_ip, token_id, appname)
 
 print("Uninstalling Application %s " % appname)
-uninstall_app(app_mgr_ip, token_id, appname, deviceip)
+uninstall_app(app_mgr_ip, token_id, fullappname, deviceip)
 
 # time.sleep(15)
 # https://10.10.20.50/api/v1/appmgr/myapps/5284/summaryState
 
-summary_state(app_mgr_ip, token_id, appname, removeable_statuses)
+summary_state(app_mgr_ip, token_id, fullappname, removeable_statuses)
 
 # remove_app(app_mgr_ip, token_id, appname)
 
-unpublish_apps(app_mgr_ip, token_id, appname)
+unpublish_apps(app_mgr_ip, token_id, fullappname)
 
-delete_local_app(app_mgr_ip, token_id, appname)
+delete_local_app(app_mgr_ip, token_id, fullappname)
 
 # print("Logging out of Fog Director")
 # delete_token(app_mgr_ip, token_id)
